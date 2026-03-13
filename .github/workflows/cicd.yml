@@ -42,12 +42,8 @@ jobs:
         script: |
           if [ ! -d "python-docker-cicd" ]; then git clone https://github.com/UlsaSandeep949/python-docker-cicd.git fi
           cd python-docker-cicd
-
           git pull origin main
-
           docker stop python-app || true
           docker rm python-app || true
-
           docker build -t python-app .
-
           docker run -d -p 5000:5000 --name python-app python-app
