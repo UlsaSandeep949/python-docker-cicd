@@ -6,7 +6,11 @@ on:
       - main
 
 jobs:
-  build:
+
+  # -----------------------------
+  # CI JOB (BUILD + TEST)
+  # -----------------------------
+  ci:
 
     runs-on: ubuntu-latest
 
@@ -15,11 +19,34 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install Dependencies
+        run: |
+          pip install -r app/requirements.txt
+
       - name: Run Tests
-        run: echo "No tests configured"
+        run: |
+          echo "No tests configured yet"
 
       - name: Build Docker Image
-        run: docker build -t python-app .
+        run: |
+          docker build -t python-app .
+
+
+
+  # -----------------------------
+  # CD JOB (DEPLOY)
+  # -----------------------------
+  deploy:
+
+    needs: ci
+    runs-on: ubuntu-latest
+
+    steps:
 
       - name: Deploy to Ubuntu Server
         uses: appleboy/ssh-action@master
@@ -31,14 +58,14 @@ jobs:
 
             echo "Starting Deployment..."
 
-            # Clone repo if it does not exist
+            # Clone repo if not exists
             if [ ! -d "/home/ubuntu/python-docker-cicd" ]; then
               git clone https://github.com/UlSaSandeep949/python-docker-cicd.git /home/ubuntu/python-docker-cicd
             fi
 
             cd /home/ubuntu/python-docker-cicd
 
-            # Fix Git security issue
+            # Fix git security
             git config --global --add safe.directory /home/ubuntu/python-docker-cicd
 
             # Pull latest code
@@ -50,7 +77,7 @@ jobs:
             # Remove old container
             docker rm python-app || true
 
-            # Remove old image (optional)
+            # Remove old image
             docker rmi python-app || true
 
             # Build new image
@@ -59,4 +86,4 @@ jobs:
             # Run container
             docker run -d -p 5000:5000 --name python-app python-app
 
-            echo "Deployment Finished"
+            echo "Deployment Completed"
