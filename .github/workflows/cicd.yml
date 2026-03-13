@@ -16,7 +16,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Run Tests
-        run: echo "No tests yet"
+        run: echo "No tests configured"
 
       - name: Build Docker Image
         run: docker build -t python-app .
@@ -28,10 +28,35 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            cd python-docker-cicd || git clone https://github.com/UlSaSandeep949/python-docker-cicd.git
-            cd python-docker-cicd
+
+            echo "Starting Deployment..."
+
+            # Clone repo if it does not exist
+            if [ ! -d "/home/ubuntu/python-docker-cicd" ]; then
+              git clone https://github.com/UlSaSandeep949/python-docker-cicd.git /home/ubuntu/python-docker-cicd
+            fi
+
+            cd /home/ubuntu/python-docker-cicd
+
+            # Fix Git security issue
+            git config --global --add safe.directory /home/ubuntu/python-docker-cicd
+
+            # Pull latest code
             git pull origin main
+
+            # Stop old container
             docker stop python-app || true
+
+            # Remove old container
             docker rm python-app || true
+
+            # Remove old image (optional)
+            docker rmi python-app || true
+
+            # Build new image
             docker build -t python-app .
+
+            # Run container
             docker run -d -p 5000:5000 --name python-app python-app
+
+            echo "Deployment Finished"
