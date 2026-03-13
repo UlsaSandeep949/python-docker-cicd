@@ -4,6 +4,7 @@ app = Flask(__name__)
 
 @app.route("/")
 def home():
+    print("Docker")
     return {"message": "Python Docker CI/CD Project Running"}
 
 if __name__ == "__main__":
